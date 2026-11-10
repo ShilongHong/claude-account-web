@@ -1,0 +1,31 @@
+#!/usr/bin/env python3
+"""Resolve the selected profile once, then execute the real Claude CLI."""
+import os
+from pathlib import Path
+import shutil
+import sys
+
+
+def main():
+    selected = Path(os.environ.get("CLAUDE_CONFIG_DIR", str(Path.home() / ".local/share/claude-account-web/current")))
+    try:
+        concrete = selected.expanduser().resolve(strict=True)
+    except OSError:
+        raise SystemExit("Claude Accounts: 当前账号入口不存在，请先在面板选择账号。")
+    if not concrete.is_dir():
+        raise SystemExit("Claude Accounts: 当前账号入口不是目录。")
+    binary = os.environ.get("CLAUDE_ACCOUNT_WEB_REAL_CLAUDE") or shutil.which("claude")
+    if not binary or Path(binary).resolve() == Path(__file__).resolve():
+        raise SystemExit("Claude Accounts: 找不到真实 Claude CLI。")
+    env = dict(os.environ, CLAUDE_CONFIG_DIR=str(concrete))
+    try:
+        from account_attribution import launcher_environment
+        data = selected.expanduser().parent if selected.name == "current" else Path.home() / ".local/share/claude-account-web"
+        env.update(launcher_environment(concrete, data, Path.home()))
+    except (OSError, ValueError, TypeError):
+        print("Claude Accounts: 用量归属记录未启用；Claude 继续正常启动。", file=sys.stderr)
+    os.execvpe(binary, [binary, *sys.argv[1:]], env)
+
+
+if __name__ == "__main__":
+    main()

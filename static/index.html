@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="csrf-token" content="__CSRF__">
+  <meta name="color-scheme" content="light">
+  <title>Claude Accounts</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="/" aria-label="Claude Accounts 首页"><span class="brand-mark" aria-hidden="true">✳</span> Claude Accounts</a><span class="local"><span class="dot"></span>本机服务 __AUTH_CONTROLS__</span></header>
+  <main>
+    <nav class="page-nav" role="tablist" aria-label="功能菜单">
+      <button id="nav-accounts" role="tab" aria-selected="true" aria-controls="accounts-page" data-page="accounts">账号管理</button>
+      <button id="nav-usage" role="tab" aria-selected="false" aria-controls="usage" data-page="usage" tabindex="-1">用量统计</button>
+      <button id="nav-quota" role="tab" aria-selected="false" aria-controls="quota" data-page="quota" tabindex="-1">账号额度</button>
+      <button id="nav-connection" role="tab" aria-selected="false" aria-controls="connection" data-page="connection" tabindex="-1">Anywhere 接入</button>
+    </nav>
+    <div id="connection-error" class="banner error" role="alert" hidden></div>
+
+    <section id="accounts-page" class="page" role="tabpanel" aria-labelledby="nav-accounts" tabindex="0">
+      <div class="range-buttons account-provider" role="group" aria-label="账号类型"><button type="button" data-account-provider="claude" aria-pressed="true">Claude</button><button type="button" data-account-provider="codex" aria-pressed="false">GPT · Codex</button></div><div class="section-heading"><div><h1>账号</h1><span id="account-count" class="muted">读取中…</span></div><button id="add-toggle" class="primary" aria-expanded="false" aria-controls="add-panel">＋ 添加账号</button></div>
+      <div class="current-strip"><span class="muted">当前</span><div id="current-account">读取中…</div><span id="process-status" class="process-status">检查进程…</span></div>
+      <p class="page-note">切换后重新启动 Claude 生效。会话历史共用。</p>
+      <form id="add-panel" class="add-panel" hidden>
+        <label for="account-name">给账号起个名字</label><div class="input-row"><input id="account-name" name="name" placeholder="工作号、个人号…" maxlength="48" required autocomplete="off"><button type="submit" class="primary">创建并登录</button><button type="button" id="add-cancel" class="quiet">取消</button></div>
+      </form>
+      <div id="codex-entry" class="page-note" hidden></div><div id="accounts" class="account-list" aria-live="polite"><div class="empty">读取中…</div></div>
+      <section id="login-panel" class="login-panel" aria-labelledby="login-heading" hidden>
+        <div class="section-heading"><h2 id="login-heading">登录账号</h2><span id="login-badge" class="badge">等待授权</span></div>
+        <div class="login-instructions"><h3 id="login-step-title">官方授权</h3><p id="login-step-description">打开授权页面，完成后返回。</p><div id="login-links"></div><p id="login-wait" class="muted">等待登录链接…</p>
+          <form id="code-form"><label for="auth-code">如果官方页面给了授权码</label><div class="input-row"><input id="auth-code" type="password" autocomplete="off" placeholder="粘贴授权码" maxlength="4096"><button type="submit" class="secondary">提交</button></div><button id="send-enter" type="button" class="text-button" title="终端提示按 Enter 时继续">发送 Enter ↵</button></form>
+          <button id="cancel-login" class="quiet" type="button">取消登录</button><p id="login-error" class="inline-error" role="alert" hidden></p>
+        </div>
+        <details class="cli-details"><summary>CLI 输出</summary><div class="terminal-wrap"><pre id="terminal" tabindex="0" aria-label="Claude 官方登录进程输出"></pre></div></details>
+      </section>
+    </section>
+
+    <section id="usage" class="page" role="tabpanel" aria-labelledby="nav-usage" tabindex="0" hidden>
+      <div class="section-heading"><h1>用量统计</h1><div class="heading-actions"><div class="range-buttons provider-buttons" role="group" aria-label="用量来源"><button type="button" data-provider="all" aria-pressed="true">全部</button><button type="button" data-provider="claude" aria-pressed="false">Claude</button><button type="button" data-provider="codex" aria-pressed="false">Codex</button></div><button id="usage-refresh" class="secondary" aria-label="重新扫描本机记录">刷新</button></div></div>
+      <p class="page-note">API 等价费用，不是订阅账单。</p>
+      <p id="usage-status" class="muted" role="status">读取中…</p><p id="usage-error" class="inline-error" role="alert" hidden></p>
+      <div id="period-ledger" class="period-ledger" aria-label="各区间 API 等价费用"></div>
+      <div class="usage-toolbar"><div class="range-buttons" role="group" aria-label="统计区间"><button data-days="1" aria-pressed="false">今天</button><button data-days="7" aria-pressed="true">近 7 天</button><button data-days="30" aria-pressed="false">近 30 天</button><button data-period="month" aria-pressed="false">本月</button><button data-period="current" aria-pressed="false">本期</button><button data-period="previous" aria-pressed="false">上期</button><button data-period="custom" aria-pressed="false">自选</button></div><label class="metric-label" for="usage-metric">趋势指标 <select id="usage-metric"><option value="tokens">Token</option><option value="usd">API 等价费用</option></select></label></div>
+      <form id="usage-range-form" class="usage-range-form">
+        <label id="billing-day-label" hidden>每月结算日 <input id="billing-day" type="number" min="1" max="31" value="1" aria-label="每月结算日"></label>
+        <label id="range-start-label" hidden>开始 <input id="range-start" type="date" aria-label="开始日期"></label>
+        <label id="range-end-label" hidden>结束 <input id="range-end" type="date" aria-label="结束日期"></label>
+        <button id="range-apply" class="secondary" type="submit" hidden>应用</button>
+        <span id="range-caption" class="usage-note" role="status"></span>
+      </form>
+      <div id="usage-cost" class="usage-cost" role="status"></div>
+      <div id="usage-summary" class="usage-summary"></div><div id="usage-chart" class="usage-chart"></div><p id="chart-caption" class="usage-note" hidden></p>
+      <div class="usage-tabs" role="tablist" aria-label="用量明细"><button id="models-tab" role="tab" aria-selected="true" aria-controls="models-panel" tabindex="0" data-panel="models">按模型</button><button id="accounts-tab" role="tab" aria-selected="false" aria-controls="accounts-panel" tabindex="-1" data-panel="accounts">按账号</button><button id="recent-tab" role="tab" aria-selected="false" aria-controls="recent-panel" tabindex="-1" data-panel="recent">最近记录</button></div>
+      <div id="models-panel" role="tabpanel" aria-labelledby="models-tab" tabindex="0" class="table-scroll"><table class="usage-table"><thead><tr><th>模型</th><th>记录数</th><th>输入</th><th>输出</th><th>缓存写入</th><th>缓存读取</th><th>API 等价费用</th></tr></thead><tbody id="model-rows"></tbody></table></div>
+      <div id="accounts-panel" role="tabpanel" aria-labelledby="accounts-tab" tabindex="0" hidden><p class="usage-note" id="attribution-note"></p><div class="table-scroll"><table class="usage-table"><thead><tr><th>账号</th><th>记录数</th><th>总 Token</th><th>API 等价费用</th></tr></thead><tbody id="account-rows"></tbody></table></div></div>
+      <div id="recent-panel" role="tabpanel" aria-labelledby="recent-tab" tabindex="0" class="table-scroll" hidden><table class="usage-table"><thead><tr><th>时间</th><th>模型</th><th>归属</th><th>总 Token</th><th>API 等价费用</th></tr></thead><tbody id="recent-rows"></tbody></table></div>
+      <details class="usage-method"><summary>统计口径</summary><p id="usage-quality"></p><p>Claude 按消息去重，包含子代理。Codex 按会话累计用量差分，归档副本去重，推理 token 已包含在输出内；记录数表示用量更新次数。无时间记录不计入区间，未确认归属的记录单列。<span id="price-sources"></span>核对于 <span id="price-date"></span>；未知价格不估算，不含工具等额外费用。</p><p id="price-basis">Codex 按官方 Standard API 价格折算。</p></details>
+    </section>
+
+    <section id="quota" class="page" role="tabpanel" aria-labelledby="nav-quota" tabindex="0" hidden>
+      <div class="section-heading"><h1>账号额度</h1><div class="heading-actions"><div class="range-buttons provider-buttons" role="group" aria-label="额度来源"><button type="button" data-provider="all" aria-pressed="true">全部</button><button type="button" data-provider="claude" aria-pressed="false">Claude</button><button type="button" data-provider="codex" aria-pressed="false">Codex</button></div><button id="quota-refresh" class="secondary" aria-label="重新读取本机额度缓存">读取缓存</button></div></div>
+      <p class="page-note">Claude：手动刷新调用 CLI /usage，固定在主目录 ~ 查询。Codex：读取本机缓存。</p><p id="quota-query-status" class="usage-note" role="status" hidden></p><p id="quota-status" class="muted" role="status">读取中…</p><p id="quota-error" class="inline-error" role="alert" hidden></p>
+      <div id="quota-rows" class="quota-rows"></div>
+    </section>
+
+    <section id="connection" class="page" role="tabpanel" aria-labelledby="nav-connection" tabindex="0" hidden>
+      <div class="section-heading"><h1>Anywhere 接入</h1><span class="badge neutral">手动配置</span></div>
+      <div class="connection-fields"><div><h2>环境变量</h2><div class="code-line"><code id="entry-config">读取中…</code><button id="copy-config" class="copy-button" aria-label="复制环境变量配置">复制</button></div></div><div><h2>Claude 可执行文件</h2><div class="code-line"><code id="launcher-path">读取中…</code><button id="copy-launcher" class="copy-button" aria-label="复制 Claude 启动器路径">复制</button></div></div></div>
+      <p class="page-note">Connector 使用相同环境变量，首次配置后重启。</p><p class="switch-flow">停止 Claude <span aria-hidden="true">→</span> 切换账号 <span aria-hidden="true">→</span> 重启 Runtime</p>
+      <details class="details"><summary>路径与说明</summary><dl id="paths"></dl><p>启动器固定账号目录。共用历史的跨账号恢复需实测；全局插件、MCP 和其他设置需单独配置。</p></details>
+    </section>
+    <footer>Claude Accounts · 本地运行<details class="usage-method"><summary>关于与源码</summary><p>Claude Accounts Web 是独立修改版，非 QB Gate 原作者发布。</p><p>基于 QB Gate，版权所有 (C) 2026 smithtaylor7748-ops。<br>源码：<a href="https://github.com/smithtaylor7748-ops/qb-gate" target="_blank" rel="noopener noreferrer">https://github.com/smithtaylor7748-ops/qb-gate</a></p><p>AGPL-3.0-only 及原项目附加条款。<a href="/source.zip" download="claude-accounts-source.zip">下载本版本完整源码与许可证</a></p></details></footer>
+  </main>
+  <div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>

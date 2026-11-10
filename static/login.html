@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="csrf-token" content="__CSRF__">
+  <meta name="color-scheme" content="light">
+  <title>登录 · Claude Accounts</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/login.js" defer></script>
+</head>
+<body class="login-page">
+  <header class="topbar"><a class="brand" href="/"><span class="brand-mark" aria-hidden="true">✳</span> Claude Accounts</a><span class="local"><span class="dot"></span>本机服务</span></header>
+  <main class="panel-login">
+    <section class="login-card" aria-labelledby="panel-login-title">
+      <h1 id="panel-login-title">登录面板</h1>
+      <p class="page-note">使用你的面板访问密码。</p>
+      <form id="panel-login-form">
+        <input type="hidden" name="username" value="admin" autocomplete="username">
+        <label for="panel-password">密码</label>
+        <div class="password-field"><input id="panel-password" name="password" type="password" autocomplete="current-password" required maxlength="256" autofocus><button id="show-password" class="quiet" type="button" aria-label="显示密码" aria-pressed="false">显示</button></div>
+        <p id="panel-login-error" class="inline-error" role="alert" hidden></p>
+        <button id="panel-login-submit" class="primary" type="submit">登录</button>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

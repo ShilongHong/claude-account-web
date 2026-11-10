@@ -1,0 +1,15 @@
+[Unit]
+Description=Local Claude Accounts Web
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/code/claude-account-web
+ExecStart=/usr/bin/python3 %h/code/claude-account-web/app.py --claude %h/.local/bin/claude --port 18769 --host 0.0.0.0 --allow-host 10.81.161.212
+Restart=on-failure
+RestartSec=3
+UMask=0077
+KillMode=control-group
+
+[Install]
+WantedBy=default.target
